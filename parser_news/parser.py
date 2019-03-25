@@ -1,7 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
 
+
 site = 'https://strana.ua/news'
+domen = 'https://strana.ua'
+
 
 
 def get_html(url):
@@ -9,8 +12,27 @@ def get_html(url):
     return r.text
 
 
-def get_all_links(html):
-    domen = 'https://strana.ua'
+def get_total_pages(html):
+
+    soup = BeautifulSoup(html, 'lxml')
+
+    pages = soup.find('div', {'class': 'pagination'}).find_all('a')
+
+    return pages[:4]
+
+
+def get_url_pages(pages):
+
+    five_pages = [site]
+
+    for href in pages:
+        five_pages.append(domen + href.get('href'))
+
+    return five_pages
+
+
+def get_page_links(html):
+
     soup = BeautifulSoup(html, 'lxml')
 
     titles = soup.find('div', {'class': 'lenta'}).find_all(
@@ -28,6 +50,17 @@ def get_all_links(html):
     return links
 
 
+def get_all_links():
+
+    all_links = []
+    all_pages = get_url_pages(get_total_pages(get_html(site)))
+    for page in all_pages:
+        for link in get_page_links(get_html(page)):
+            all_links.append(link)
+
+    return all_links
+
+
 def get_links_data(html):
     soup = BeautifulSoup(html, 'lxml')
 
@@ -39,22 +72,22 @@ def get_links_data(html):
     return title, news
 
 
-def write_news(tuple):
-    name = 'News for OLEGA.doc'
+def write_news(data):
 
-    with open(name, 'a') as f:
-        f.write(tuple[0])
-        f.write('\n')
-        for el in tuple[1]:
+    file_name = 'News for OLEJA.docx'
+
+    with open(file_name, 'a') as f:
+        f.write(data[0])
+        f.write('\n\n')
+        for el in data[1]:
             f.write(el)
         f.write('\n\n\n')
 
 
 def main():
-    all_links = get_all_links(get_html(site))
-
-    for link in all_links:
-        write_news(get_links_data(get_html(link)))
+    for links in get_all_links():
+        data = get_links_data(get_html(links))
+        write_news(data)
 
 
 if __name__ == '__main__':
