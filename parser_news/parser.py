@@ -1,10 +1,11 @@
 import requests
+import os
+from docx import Document, shared
 from bs4 import BeautifulSoup
 
 
 site = 'https://strana.ua/news'
 domen = 'https://strana.ua'
-
 
 
 def get_html(url):
@@ -74,14 +75,30 @@ def get_links_data(html):
 
 def write_news(data):
 
-    file_name = 'News for OLEJA.docx'
+    generate_file_name = 'News for OLEJA.docx'
 
-    with open(file_name, 'a') as f:
-        f.write(data[0])
-        f.write('\n\n')
-        for el in data[1]:
-            f.write(el)
-        f.write('\n\n\n')
+    if generate_file_name in os.listdir(os.getcwd()):
+
+        document = Document(generate_file_name)
+        style = document.styles['Normal']
+        font = style.font
+        font.name = 'Times New Roman'
+        font.size = shared.Pt(14)
+        paragraph = document.add_paragraph()
+        paragraph.add_run(data[0]).bold = True
+        document.add_paragraph(data[1])
+        document.save(generate_file_name)
+
+    else:
+        document = Document()
+        style = document.styles['Normal']
+        font = style.font
+        font.name = 'Times New Roman'
+        font.size = shared.Pt(14)
+        paragraph = document.add_paragraph()
+        paragraph.add_run(data[0]).bold = True
+        document.add_paragraph(data[1])
+        document.save(generate_file_name)
 
 
 def main():
